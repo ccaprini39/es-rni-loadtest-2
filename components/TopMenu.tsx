@@ -5,6 +5,7 @@ import { Input } from './ui/input'
 import { Label } from './ui/label'
 import Link from 'next/link'
 import { ModeToggle } from './ModeToggle'
+import FullScreenToggle from './FullscreenToggle'
 
 export default function TopMenu() {
   const [url, setUrl] = useLocalStorage<string>('loadtest-url', '')
@@ -31,6 +32,7 @@ export default function TopMenu() {
       </div>
       <div className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
         <ModeToggle />
+        <FullScreenToggle />
       </div>
     </header>
   )

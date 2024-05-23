@@ -51,3 +51,41 @@ export async function createIndex(esUrl : string, indexName : string, body : str
     throw new Error(`Failed to create index: ${(error as Error).message}`);
   }
 }
+
+export async function deleteIndex(esUrl : string, indexName : string) : Promise<void> {
+  console.log('url:', esUrl)
+  console.log('Deleting index:', indexName)
+  try {
+    const response = await fetch(`${esUrl}/${indexName}`, {
+      method: 'DELETE',
+      cache: 'no-cache',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+  } catch (error) {
+    throw new Error(`Failed to delete index: ${(error as Error).message}`);
+  }
+}
+
+export async function getIndexMappings(esUrl : string, indexName : string) : Promise<any> {
+  console.log('url:', esUrl)
+  console.log('Getting index mappings:', indexName)
+  try {
+    const response = await fetch(`${esUrl}/${indexName}/_mapping`, {
+      method: 'GET',
+      cache: 'no-cache',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const mappings = await response.json();
+    return mappings;
+  } catch (error) {
+    throw new Error(`Failed to get index mappings: ${(error as Error).message}`);
+  }
+}
+

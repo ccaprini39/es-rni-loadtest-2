@@ -1,13 +1,22 @@
 'use client'
 import { useLocalStorage } from '@uidotdev/usehooks'
 import { useEffect, useRef, useState } from 'react'
-import { catIndices, createIndex } from './indices-server-actions'
+import { catIndices, createIndex, deleteIndex, getIndexMappings } from './indices-server-actions'
 import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { MonacoJsonEditor } from '@/components/MonacoJsonEditor'
 import { Button } from '@/components/ui/button'
-import { Label } from '@radix-ui/react-label'
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
+import { X } from 'lucide-react'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
+import { Label } from '@/components/ui/label'
+import Link from 'next/link'
 
 // this will be a page that handles managing and creating indices
 
@@ -33,40 +42,102 @@ export default function IndicesPage() {
   }, [value])
 
   return (
-    <div className="h-full w-full p-5">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Index</TableHead>
-            <TableHead>Health</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Primary</TableHead>
-            <TableHead>Replicas</TableHead>
-            <TableHead>Docs Count</TableHead>
-            <TableHead>Docs Deleted</TableHead>
-            <TableHead>Store Size</TableHead>
-            <TableHead>Primary Store Size</TableHead>
-          </TableRow>
-        </TableHeader>
-        <tbody>
-          {indices.map((index) => (
-            <TableRow key={index.index}>
-              <TableCell>{index.index}</TableCell>
-              <TableCell>{index.health}</TableCell>
-              <TableCell>{index.status}</TableCell>
-              <TableCell>{index.pri}</TableCell>
-              <TableCell>{index.rep}</TableCell>
-              <TableCell>{index['docs.count']}</TableCell>
-              <TableCell>{index['docs.deleted']}</TableCell>
-              <TableCell>{index['store.size']}</TableCell>
-              <TableCell>{index['pri.store.size']}</TableCell>
-            </TableRow>
-          ))}
-        </tbody>
-      </Table>
-      <CreateIndexForm />
-    </div>
+    <Tabs className="h-full w-full p-5" defaultValue='list'>
+      <TabsList>
+        <TabsTrigger value='list'>List</TabsTrigger>
+        <TabsTrigger value='create'>Create</TabsTrigger>
+      </TabsList>
+      <TabsContent value='list'>
+        <Table>
+          <IndexTableHeader />
+          <tbody>
+            {indices.map((index) => (
+              <IndexTableRow key={index.index} index={index} />
+            ))}
+          </tbody>
+        </Table>
+      </TabsContent>
+      <TabsContent value='create' className='h-full'>
+        <CreateIndexForm />
+      </TabsContent>
+    </Tabs>
   )
+
+  function IndexTableHeader() {
+    return (
+      <TableHeader>
+        <TableRow>
+          <TableHead>Index</TableHead>
+          <TableHead>Health</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Primary</TableHead>
+          <TableHead>Replicas</TableHead>
+          <TableHead>Docs Count</TableHead>
+          <TableHead>Store Size</TableHead>
+          <TableHead>Primary Store Size</TableHead>
+          <TableHead>Mapping</TableHead>
+          <TableHead></TableHead>
+        </TableRow>
+      </TableHeader>
+    )
+  }
+
+  function IndexTableRow({ index }: { index: Index }) {
+    const [mapping, setMapping] = useState<any>('')
+    useEffect(() => {
+      async function loadMapping() {
+        try {
+          const data = await getIndexMappings(url, index.index)
+          setMapping(data)
+        } catch (error: any) {
+          console.log(error.message)
+        }
+      }
+      loadMapping()
+    }, [])
+
+    async function handleDeleteIndex(indexName: string) {
+      try {
+        await deleteIndex(url, indexName)
+        toast.success('Index deleted successfully')
+        toggleValue()
+      } catch (error: any) {
+        toast.error('Failed to delete index')
+        console.log(error.message)
+      }
+    }
+
+    return (
+      <TableRow>
+        <TableCell>
+          <Link href={`/indices/${index.index}`}>{index.index}</Link>
+        </TableCell>
+        <TableCell>{index.health}</TableCell>
+        <TableCell>{index.status}</TableCell>
+        <TableCell>{index.pri}</TableCell>
+        <TableCell>{index.rep}</TableCell>
+        <TableCell>{index['docs.count']}</TableCell>
+        <TableCell>{index['store.size']}</TableCell>
+        <TableCell>{index['pri.store.size']}</TableCell>
+        <TableCell>
+          <HoverCard openDelay={100} closeDelay={500}>
+            <HoverCardTrigger className='w-screen'>
+              <Button>View</Button>
+            </HoverCardTrigger>
+            <HoverCardContent className='w-full'>
+              <pre>{JSON.stringify(mapping, null, 2)}</pre>
+            </HoverCardContent>
+          </HoverCard>
+        </TableCell>
+        <TableCell>
+          <Button variant='destructive' size='icon' onClick={() => handleDeleteIndex(index.index)}>
+            <X />
+          </Button>
+        </TableCell>
+      </TableRow>
+    )
+  }
+
   function CreateIndexForm() {
     const [indexName, setIndexName] = useState('')
     const [mapping, setMapping] = useState(JSON.stringify(sampleIndex, null, 2))
@@ -89,9 +160,8 @@ export default function IndicesPage() {
     }
 
     return (
-      <div className='h-[400px] py-1'>
-        <h1>Create Index</h1>
-        <div>
+      <div className='h-[500px]'>
+        <div className='py-1'>
           <Label htmlFor="index-name">Index Name</Label>
           <Input id="index-name" value={indexName} onChange={(e) => setIndexName(e.target.value)} />
         </div>
@@ -101,7 +171,7 @@ export default function IndicesPage() {
           givenJson={mapping}
           givenOnChange={(newJson: string | undefined) => setMapping(newJson || '')}
         />
-        <Button onClick={handleCreateIndex}>Create Index</Button>
+        <Button className='my-1' onClick={handleCreateIndex}>Create Index</Button>
       </div>
     )
   }
@@ -133,11 +203,12 @@ const sampleIndex =
   },
   "mappings": {
     "properties": {
-      "name": {
-        "type": "text"
+      "birth_date": {
+        "type": "rni_date",
+        "format": "MM-yyyy-dd"
       },
-      "dob": {
-        "type": "date"
+      "primary_name": {
+        "type": "rni_name"
       }
     }
   }
