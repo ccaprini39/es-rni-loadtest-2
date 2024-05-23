@@ -1,16 +1,13 @@
 'use client'
 import { useLocalStorage } from '@uidotdev/usehooks'
 import { useEffect, useRef, useState } from 'react'
-import { catIndices } from './indices-server-actions'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+import { catIndices, createIndex } from './indices-server-actions'
 import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { MonacoJsonEditor } from '@/components/MonacoJsonEditor'
 import { Button } from '@/components/ui/button'
-import { VerticalResizeComponent } from '@/components/ui/ResizeComponents'
+import { Label } from '@radix-ui/react-label'
+import { Input } from '@/components/ui/input'
+import { toast } from 'sonner'
 
 // this will be a page that handles managing and creating indices
 
@@ -18,6 +15,8 @@ export default function IndicesPage() {
 
   const [indices, setIndices] = useState<Index[]>([])
   const [url, setUrl] = useLocalStorage<string>('loadtest-url', '')
+  const [value, setValue] = useState(false)
+  function toggleValue() { setValue(!value) }
 
   useEffect(() => {
     async function loadIndices() {
@@ -31,7 +30,7 @@ export default function IndicesPage() {
       }
     }
     loadIndices()
-  }, [])
+  }, [value])
 
   return (
     <div className="h-full w-full p-5">
@@ -68,6 +67,44 @@ export default function IndicesPage() {
       <CreateIndexForm />
     </div>
   )
+  function CreateIndexForm() {
+    const [indexName, setIndexName] = useState('')
+    const [mapping, setMapping] = useState(JSON.stringify(sampleIndex, null, 2))
+    const ref = useRef<any>(null)
+
+    async function handleCreateIndex() {
+      const indexCreationProps: IndexCreationProps = {
+        indexName,
+        body: JSON.stringify(JSON.parse(mapping))
+      }
+      try {
+        await createIndex(url, indexCreationProps.indexName, indexCreationProps.body)
+        toast.success('Index created successfully')
+        toggleValue()
+      }
+      catch (error: any) {
+        toast.error('Failed to create index')
+        console.log(error.message)
+      }
+    }
+
+    return (
+      <div className='h-[400px] py-1'>
+        <h1>Create Index</h1>
+        <div>
+          <Label htmlFor="index-name">Index Name</Label>
+          <Input id="index-name" value={indexName} onChange={(e) => setIndexName(e.target.value)} />
+        </div>
+
+        <MonacoJsonEditor
+          givenRef={ref}
+          givenJson={mapping}
+          givenOnChange={(newJson: string | undefined) => setMapping(newJson || '')}
+        />
+        <Button onClick={handleCreateIndex}>Create Index</Button>
+      </div>
+    )
+  }
 }
 
 type Index = {
@@ -85,9 +122,7 @@ type Index = {
 
 type IndexCreationProps = {
   indexName: string;
-  numShards: number;
-  numReplicas: number;
-  mapping: string;
+  body: string;
 }
 
 const sampleIndex =
@@ -106,40 +141,4 @@ const sampleIndex =
       }
     }
   }
-}
-
-export function CreateIndexForm() {
-  const [indexName, setIndexName] = useState('')
-  const [numShards, setNumShards] = useState(1)
-  const [numReplicas, setNumReplicas] = useState(1)
-  const [mapping, setMapping] = useState('')
-  const ref = useRef<any>(null)
-
-  function handleCreateIndex() {
-    const indexCreationProps: IndexCreationProps = {
-      indexName,
-      numShards,
-      numReplicas,
-      mapping
-    }
-    console.log(indexCreationProps)
-  }
-
-  return (
-    <div
-      className='h-[400px]'
-    >
-      <h1>Create Index</h1>
-      <VerticalResizeComponent>
-        <MonacoJsonEditor
-          givenRef={ref}
-          givenJson={mapping}
-          givenOnChange={(newJson: string | undefined) => setMapping(newJson || '')}
-        />
-        <Button onClick={handleCreateIndex}>Create Index</Button>
-      </VerticalResizeComponent>
-
-
-    </div>
-  )
 }
