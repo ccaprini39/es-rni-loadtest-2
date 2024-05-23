@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import "./globals.css";
+import TopMenu from "@/components/TopMenu";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +25,7 @@ export default function RootLayout({
           enableSystem={true}
           disableTransitionOnChange
         >
+          <TopMenu />
           {children}
         </ThemeProvider>
       </body>
