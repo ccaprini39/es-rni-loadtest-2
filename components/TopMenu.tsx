@@ -20,8 +20,8 @@ export default function TopMenu() {
           <Link href="/indices" className="hover:text-primary">Indices</Link>
         </div>
       </nav>
-      <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-        <form className="ml-auto flex-grow w-full sm:flex-initial my-1">
+      <div className="flex flex-row w-full gap-4 md:ml-auto md:gap-2 py-1 lg:gap-4">
+        <form className="ml-auto flex-grow w-full sm:flex-initial py-1">
           <Label htmlFor="elasticsearch-url" >Elasticsearch URL</Label>
           <Input
             id="elasticsearch-url"

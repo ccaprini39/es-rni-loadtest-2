@@ -1,4 +1,3 @@
-'use server'
 import { americanMaleFirstNames, americanFemaleFirstNames, americanLastNames } from "./american-names"
 import { asianMaleFirstNames, asianFemaleFirstNames, asianLastNames } from "./asian-names"
 import { arabicMaleFirstNames, arabicFemaleFirstNames, arabicLastNames } from "./arabic-names"
@@ -55,25 +54,16 @@ function generateHispanicName() : string {
   return name;
 }
 
-export async function generate100Names() : Promise<string[]> {
-  let names = [];
-  for (let i = 0; i < 66; i++) {
-    names.push(generateAmericanName());
-  }
-  for (let i = 0; i < 12; i++) {
-    names.push(generateArabicName());
-  }
-  for (let i = 0; i < 6; i++) {
-    names.push(generateAsianName());
-  }
-  for (let i = 0; i < 16; i++) {
-    names.push(generateHispanicName());
-  }
-  return names;
+export function generateSingleRandomName() : string {
+  //generate a random number between 1 and 100
+  let random = Math.floor(Math.random() * 100) + 1;
+  if (random <= 66) return generateAmericanName();
+  if (random <= 78) return generateAsianName();
+  if (random <= 84) return generateArabicName();
+  return generateHispanicName();
 }
 
-//****************DOB Generation ******************/
-function generateRandomDate() : string {
+export function generateRandomDate() : string {
   //generates dates between 1900-jan-01 and 
   const start = -2208988800000
   const end = 1712102400000
@@ -90,30 +80,4 @@ function generateRandomDate() : string {
     day = '0' + day.toString()
   }
   return `${year}-${month}-${day}`
-}
-
-function generate100Dobs() : string[] {
-  const dobsArray = []
-  let startTimer = Date.now()
-  for (let i = 0; i < 100; i++) {
-    dobsArray.push(generateRandomDate())
-  }
-  return dobsArray
-}
-
-//****************Bulk String Generation ******************/
-
-//takes in a number and generates a string of 100 * number names and dobs
-function generateN00BulkIndexString(number : number) : string {
-  let string = ''
-  for (let i = 0; i < number; i++) {
-    const names = generate100Names()
-    const dobs = generate100Dobs()
-
-  }
-  return string
-}
-
-export async function testBulkStringGeneration() : Promise<string> {
-  return generateN00BulkIndexString(1)
 }

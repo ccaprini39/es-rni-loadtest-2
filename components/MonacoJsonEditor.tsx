@@ -20,7 +20,7 @@ export function MonacoJsonEditor({givenJson, givenOnChange, givenRef}: {givenJso
       theme={theme === 'dark' ? 'vs-dark' : 'vs'}
       options={{
         wordWrap : "wordWrapColumn",
-        wordWrapColumn: 100,
+        wordWrapColumn: 150,
         tabSize: 2,
       }}
       className='border  rounded-md'
