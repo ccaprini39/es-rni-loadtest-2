@@ -1,5 +1,5 @@
-import Image from "next/image";
-import TestComponent from "./name-gen/TestComponent";
+'use client'
+
 import BasicAsyncStreaming from "./client-components/BasicStreaming";
 
 export default function Home() {

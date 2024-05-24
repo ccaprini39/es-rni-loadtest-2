@@ -1,4 +1,5 @@
 'use client'
+
 import {
   Tabs,
   TabsContent,
@@ -13,11 +14,9 @@ import { Label } from "@radix-ui/react-label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { MonacoJsonEditor } from "@/components/MonacoJsonEditor"
 import { HorizontalComponentsResize } from "@/components/ui/ResizeComponents"
 import { executeQuery, executeRandomQueries, executeRandomQuery } from "../rni-queries"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { get } from "http"
 
 export default function IndexDetails({ params }: { params: { index: string } }) {
 

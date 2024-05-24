@@ -81,6 +81,7 @@ export function useStreamingResponse(url: string, clearOnClose = true) {
         }
       )
       setEventSource(null)
+      closeCall()
       return
     }
     const data = event.data;

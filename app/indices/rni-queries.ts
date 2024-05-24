@@ -42,10 +42,10 @@ export async function executeRandomQuery(url: string, index: string): Promise<an
       throw new Error(`Error: ${response.statusText}`);
     }
 
+    const status = response.status;
     const result = await response.json();
-    const took = result.took
-    console.log(`Query took ${took} ms`)
-    return took;
+    const took = result.took;
+    return {took, status};
   } catch (error) {
     throw new Error(`Failed to execute query: ${(error as Error).message}`);
   }

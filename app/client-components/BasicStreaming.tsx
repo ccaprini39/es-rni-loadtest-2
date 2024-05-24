@@ -44,11 +44,11 @@ interface DataResultPoint {
 }
 
 export default function BasicAsyncStreaming() {
-  const [indexInfoVisible, setIndexInfoVisible] = useState<boolean>(false)
   const [esUrl, setUrl] = useLocalStorage<string>('loadtest-url', '')
+  const [index, setIndex] = useLocalStorage<string>('loadtest-index', '')
   const [duration, setDuration] = useState<number>(5)
   const [results, setResults] = useState<DataResultPoint[]>([])
-  const { openCall, closeCall, clearMessages, messages, eventSource } = useStreamingResponse(`/api/sync-name-test?url=${esUrl}&duration=${duration}`, false)
+  const { openCall, closeCall, clearMessages, messages, eventSource } = useStreamingResponse(`/api/sync-name-test?url=${esUrl}&duration=${duration}&index=${index}`, false)
 
   useDidUpdate(() => {
     if (typeof messages.data === "string") {
@@ -65,12 +65,12 @@ export default function BasicAsyncStreaming() {
   }, [messages])
 
   return (
-    <div className="border rounded-md h-full">
+    <div className="border rounded-md">
       <div
         className="flex flex-row justify-between"
       >
-        <div className="grid w-full max-w-lg items-center gap-1.5 outline outline-1 rounded-md p-2">
-          <Label htmlFor="duration">Duration</Label>
+        <div className="grid w-full max-w-lg items-center gap-1.5 border rounded-md">
+          <Label htmlFor="duration">Duration (in seconds)</Label>
           <Input
             type="number"
             id="duration"
@@ -79,30 +79,30 @@ export default function BasicAsyncStreaming() {
             onChange={(e) => setDuration(parseInt(e.target.value))}
           />
         </div>
-      </div>
-      <div
-        className="flex flex-row justify-between"
-      >
-        <Button
-          onClick={openCall}
-          className="bg-green-500 hover:bg-green-300 m-2"
-          disabled={eventSource !== null}
+        <div
+          className="flex flex-row justify-between"
         >
-          Start
-        </Button>
-        <Button
-          onClick={closeCall}
-          className="bg-red-500 hover:bg-red-300 m-2"
-          disabled={eventSource === null}
-        >
-          Stop
-        </Button>
-        <Button
-          onClick={clearMessages}
-          className="m-2"
-        >
-          Clear
-        </Button>
+          <Button
+            onClick={openCall}
+            size='sm'
+            disabled={eventSource !== null}
+          >
+            Start
+          </Button>
+          <Button
+            onClick={closeCall}
+            variant='destructive'
+            size='sm'
+          >
+            Stop
+          </Button>
+          <Button
+            size='sm'
+            onClick={clearMessages}
+          >
+            Clear
+          </Button>
+        </div>
       </div>
       <Body results={results} />
     </div>
@@ -118,19 +118,19 @@ export function Body({ results }: { results: DataResultPoint[] }) {
     <div className="dashboard-body w-full">
       <Tabs defaultValue="stats">
         <TabsList>
-          <TabsTrigger value="stats" className="bg-gray-400 w-[300px]">
+          <TabsTrigger value="stats">
             Stats
           </TabsTrigger>
-          <TabsTrigger value="charts" className="bg-gray-400 w-[300px]">
+          <TabsTrigger value="charts">
             Charts
           </TabsTrigger>
-          <TabsTrigger value="download" className="bg-gray-400 w-[300px]">
+          <TabsTrigger value="download">
             Download
           </TabsTrigger>
         </TabsList>
         <TabsContent
           value="stats"
-          className="m-2 dashboard-body-content border border-white rounded"
+          className="dashboard-body-content border border-white rounded"
         >
           <KaTable data={results} />
         </TabsContent>
@@ -145,46 +145,11 @@ export function Body({ results }: { results: DataResultPoint[] }) {
   );
 }
 
-const sampleResults =
-  [
-    {
-      "numberOfRequests": 1,
-      "numberOfFailures": 0,
-      "averageResponseTime": 67.19179999828339,
-      "minResponseTime": 67.19179999828339,
-      "maxResponseTime": 67.19179999828339,
-      "currentRps": 14.882768433433068,
-      "averageTook": 6,
-      "minTook": 6,
-      "maxTook": 6
-    },
-    {
-      "numberOfRequests": 2,
-      "numberOfFailures": 0,
-      "averageResponseTime": 60.12229999899864,
-      "minResponseTime": 53.0527999997139,
-      "maxResponseTime": 67.19179999828339,
-      "currentRps": 18.849146510747648,
-      "averageTook": 5,
-      "minTook": 4,
-      "maxTook": 6
-    },
-    {
-      "numberOfRequests": 3,
-      "numberOfFailures": 0,
-      "averageResponseTime": 61.04739999771118,
-      "minResponseTime": 53.0527999997139,
-      "maxResponseTime": 67.19179999828339,
-      "currentRps": 15.898857827283202,
-      "averageTook": 5.333333333333333,
-      "minTook": 4,
-      "maxTook": 6
-    }
-  ]
 
 function KaTable({ data }: { data: DataResultPoint[] }) {
   const columns: Column[] =
     [
+      { key: 'index', title: 'Index', dataType: DataType.String, colGroup: { style: { minWidth: 50 } } },
       { key: 'numberOfRequests', title: 'Number of Requests', dataType: DataType.Number, colGroup: { style: { minWidth: 50 } } },
       { key: 'numberOfFailures', title: 'Number of Failures', dataType: DataType.Number, colGroup: { style: { minWidth: 50 } } },
       { key: 'averageResponseTime', title: 'Average Response Time', dataType: DataType.Number, colGroup: { style: { minWidth: 50 } } },
@@ -194,6 +159,7 @@ function KaTable({ data }: { data: DataResultPoint[] }) {
       { key: 'averageTook', title: 'Average Took', dataType: DataType.Number, colGroup: { style: { minWidth: 50 } } },
       { key: 'minTook', title: 'Min Took', dataType: DataType.Number, colGroup: { style: { minWidth: 50 } } },
       { key: 'maxTook', title: 'Max Took', dataType: DataType.Number, colGroup: { style: { minWidth: 50 } } },
+      { key: 'cpu', title: 'CPU', dataType: DataType.Number, colGroup: { style: { minWidth: 50 } } },
     ]
   return (
     <Table

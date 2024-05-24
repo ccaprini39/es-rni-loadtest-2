@@ -205,7 +205,7 @@ const sampleIndex =
     "properties": {
       "birth_date": {
         "type": "rni_date",
-        "format": "MM-yyyy-dd"
+        "format": "yyyy-MM-dd"
       },
       "primary_name": {
         "type": "rni_name"
